@@ -140,45 +140,30 @@ const Task = ({
   
       if (isLocalhost) {
         console.log("🧪 Localhost detected - using fallback alert.");
+        alert(`Reminder: ${task.title} at ${formatTime(task.time)}`);
       }
     } else {
+ 
       const start = new Date(`${task.date}T${task.time}`);
-      const end = new Date(start.getTime() + 30 * 60000); // +30 minutes
+      const end = new Date(start.getTime() + 30 * 60000); 
   
       const formatForGoogle = (date) =>
         date.toISOString().replace(/-|:|\.\d\d\d/g, "");
   
-      const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+      const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
         task.title
-      )}&dates=${formatForGoogle(start)}/${formatForGoogle(
-        end
-      )}&details=${encodeURIComponent(
+      )}&dates=${formatForGoogle(start)}/${formatForGoogle(end)}&details=${encodeURIComponent(
         `Reminder for task: ${task.title}`
       )}&sf=true&output=xml`;
   
-      window.open(googleCalendarUrl, "_blank");
+ 
+      window.open(googleCalendarUrl, "_blank", "noopener,noreferrer");
     }
   };
   
+  
 
-  const generateICS = (task) => {
-    const start = new Date(`${task.date}T${task.time}`);
-    const end = new Date(start.getTime() + 30 * 60000); 
-    const formatICS = (date) =>
-      date.toISOString().replace(/[-:]/g, "").split(".")[0] + "Z";
-
-    return `
-BEGIN:VCALENDAR
-VERSION:2.0
-BEGIN:VEVENT
-SUMMARY:${task.title}
-DTSTART:${formatICS(start)}
-DTEND:${formatICS(end)}
-DESCRIPTION:Reminder for task "${task.title}"
-END:VEVENT
-END:VCALENDAR
-    `.trim();
-  };
+ 
 
   return (
     <div className={`task ${task.category} ${isSelected ? "selected" : ""}`}>
