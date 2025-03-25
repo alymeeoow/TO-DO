@@ -1,0 +1,108 @@
+.confirm-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    padding: 15px; 
+}
+
+.confirm-modal-content {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    width: 90%;
+    max-width: 600px; 
+    text-align: center;
+    box-shadow: 0px 6px 18px rgba(0, 0, 0, 0.25);
+}
+
+.confirm-modal-content h3 {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 10px;
+}
+
+.confirm-modal-content p {
+    font-size: 16px; 
+    color: #444;
+    margin-bottom: 20px;
+    line-height: 1.4;
+    max-width: 540px;
+    text-align: center;
+    word-wrap: break-word;
+}
+
+.confirm-modal-actions {
+    display: flex;
+    justify-content: center;
+    margin-top: 15px;
+    gap: 12px;
+    flex-wrap: wrap; 
+}
+
+.confirm-modal-cancel-btn, 
+.confirm-modal-confirm-btn {
+    padding: 12px 16px;
+    font-size: 1rem;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: background 0.3s, transform 0.2s;
+    width: 48%;
+    min-width: 120px; 
+    border: 2px solid black;
+    text-align: center;
+}
+
+.confirm-modal-cancel-btn {
+    background: #f8f9fa;
+    color: black;
+}
+
+.confirm-modal-cancel-btn:hover {
+    background: #e2e6ea;
+    transform: scale(1.05);
+}
+
+.confirm-modal-confirm-btn {
+    background: #C3B091;
+    color: black;
+}
+
+.confirm-modal-confirm-btn:hover {
+    background: #b19d80;
+    transform: scale(1.05);
+}
+
+
+@media (max-width: 480px) {
+    .confirm-modal-content {
+        width: 95%; 
+        padding: 20px;
+    }
+
+    .confirm-modal-content h3 {
+        font-size: 18px;
+    }
+
+    .confirm-modal-content p {
+        font-size: 14px;
+    }
+
+    .confirm-modal-actions {
+        flex-direction: column; 
+        gap: 10px;
+    }
+
+    .confirm-modal-cancel-btn,
+    .confirm-modal-confirm-btn {
+        width: 100%; 
+    }
+}
