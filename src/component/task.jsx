@@ -1,57 +1,76 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import {
   FiCheck,
   FiCircle,
   FiTrash2,
   FiEdit,
   FiSquare,
-  FiCheckSquare
+  FiCheckSquare,
 } from "react-icons/fi";
 import "../assets/styles/task.css";
 
-
-const TaskList = ({ 
-  tasks = [],   
-  onToggleComplete, 
-  onDelete, 
+const TaskList = ({
+  tasks = [],
+  onToggleComplete,
+  onDelete,
   onEdit,
   selectedTasks = [],
   onToggleSelect = () => {},
 }) => {
   const [sortOption, setSortOption] = useState("newest");
+  const [editingTask, setEditingTask] = useState(null);
 
   const getSortedTasks = () => {
-    return [...tasks].sort((a, b) => {
+    let filteredTasks = [...tasks];
+
+    if (sortOption === "done") {
+      filteredTasks = filteredTasks.filter((task) => task.completed);
+    } else if (sortOption === "pending") {
+      filteredTasks = filteredTasks.filter((task) => !task.completed);
+    }
+
+    return filteredTasks.sort((a, b) => {
       const dateA = new Date(`${a.date}T${a.time}`);
       const dateB = new Date(`${b.date}T${b.time}`);
-      if (sortOption === "newest") return dateB - dateA;
-      if (sortOption === "oldest") return dateA - dateB;
-      if (sortOption === "nearest") {
-        const now = new Date();
-        return Math.abs(dateA - now) - Math.abs(dateB - now);
+
+      switch (sortOption) {
+        case "newest":
+          return dateB - dateA;
+        case "oldest":
+          return dateA - dateB;
+        case "nearest":
+          const now = new Date();
+          return Math.abs(dateA - now) - Math.abs(dateB - now);
+        default:
+          return 0;
       }
-      return 0;
     });
+  };
+
+  const handleSaveEdit = (updatedTask) => {
+    onEdit(updatedTask);
+    setEditingTask(null);
   };
 
   return (
     <>
-    <div className="task-sort-container">
-  <label htmlFor="sort" className="sort-label">
-    Sort by:
-  </label>
-  <select
-    id="sort"
-    value={sortOption}
-    onChange={(e) => setSortOption(e.target.value)}
-    className="sort-select"
-  >
-    <option value="newest">Newest</option>
-    <option value="oldest">Oldest</option>
-    <option value="nearest">Nearest</option>
-  </select>
-</div>
-
+      <div className="task-sort-container">
+        <label htmlFor="sort" className="sort-label">
+          Sort by:
+        </label>
+        <select
+          id="sort"
+          value={sortOption}
+          onChange={(e) => setSortOption(e.target.value)}
+          className="sort-select"
+        >
+          <option value="newest">Recently Added</option>
+          <option value="oldest">First Added</option>
+          <option value="nearest">Upcoming Due</option>
+          <option value="done">Completed Tasks</option>
+          <option value="pending">Pending Tasks</option>
+        </select>
+      </div>
 
       {getSortedTasks().map((task) => (
         <Task
@@ -59,16 +78,22 @@ const TaskList = ({
           task={task}
           onToggleComplete={onToggleComplete}
           onDelete={onDelete}
-          onEdit={onEdit}
+          onEdit={() => setEditingTask(task)}
           isSelected={selectedTasks.includes(task.id)}
           onToggleSelect={() => onToggleSelect(task.id)}
           showCheckbox={true}
         />
       ))}
+
+      <TaskEditModal
+        task={editingTask}
+        isOpen={!!editingTask}
+        onClose={() => setEditingTask(null)}
+        onSave={handleSaveEdit}
+      />
     </>
   );
 };
-
 
 const Task = ({
   task,
@@ -77,7 +102,7 @@ const Task = ({
   onEdit,
   isSelected = false,
   onToggleSelect = () => {},
-  showCheckbox = true
+  showCheckbox = true,
 }) => {
   const formatDate = (dateStr) => {
     const date = new Date(dateStr);
@@ -85,7 +110,7 @@ const Task = ({
       .toLocaleDateString("en-US", {
         month: "long",
         day: "2-digit",
-        year: "numeric"
+        year: "numeric",
       })
       .replace(",", "-");
   };
@@ -97,7 +122,7 @@ const Task = ({
     return date.toLocaleTimeString("en-US", {
       hour: "numeric",
       minute: "2-digit",
-      hour12: true
+      hour12: true,
     });
   };
 
@@ -110,60 +135,6 @@ const Task = ({
     e.stopPropagation();
     onToggleSelect(task.id);
   };
-
-  const handleRemind = () => {
-    const taskDateTime = new Date(`${task.date}T${task.time}`);
-    const now = new Date();
-    const isToday = taskDateTime.toDateString() === now.toDateString();
-  
-    const isLocalhost =
-      window.location.hostname === "localhost" ||
-      window.location.hostname.startsWith("192.168.") ||
-      window.location.hostname === "127.0.0.1";
-  
-    if (isToday) {
-      if ("Notification" in window) {
-        if (Notification.permission === "granted") {
-          new Notification("⏰ Task Reminder", {
-            body: `${task.title} at ${formatTime(task.time)}`
-          });
-        } else if (Notification.permission === "default") {
-          Notification.requestPermission().then((permission) => {
-            if (permission === "granted") {
-              new Notification("⏰ Task Reminder", {
-                body: `${task.title} at ${formatTime(task.time)}`
-              });
-            }
-          });
-        }
-      }
-  
-      if (isLocalhost) {
-        console.log("🧪 Localhost detected - using fallback alert.");
-        alert(`Reminder: ${task.title} at ${formatTime(task.time)}`);
-      }
-    } else {
- 
-      const start = new Date(`${task.date}T${task.time}`);
-      const end = new Date(start.getTime() + 30 * 60000); 
-  
-      const formatForGoogle = (date) =>
-        date.toISOString().replace(/-|:|\.\d\d\d/g, "");
-  
-      const googleCalendarUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
-        task.title
-      )}&dates=${formatForGoogle(start)}/${formatForGoogle(end)}&details=${encodeURIComponent(
-        `Reminder for task: ${task.title}`
-      )}&sf=true&output=xml`;
-  
- 
-      window.open(googleCalendarUrl, "_blank", "noopener,noreferrer");
-    }
-  };
-  
-  
-
- 
 
   return (
     <div className={`task ${task.category} ${isSelected ? "selected" : ""}`}>
@@ -193,17 +164,13 @@ const Task = ({
           <FiCheck
             className="task-status completed"
             onClick={() => onToggleComplete(task.id)}
-            aria-label={
-              task.completed ? "Mark as incomplete" : "Mark as complete"
-            }
+            aria-label="Mark as incomplete"
           />
         ) : (
           <FiCircle
             className="task-status"
             onClick={() => onToggleComplete(task.id)}
-            aria-label={
-              task.completed ? "Mark as incomplete" : "Mark as complete"
-            }
+            aria-label="Mark as complete"
           />
         )}
         <div className="task-details">
@@ -211,20 +178,14 @@ const Task = ({
           <span className="task-datetime">
             <strong>{formatDate(task.date)}</strong> - {formatTime(task.time)}
           </span>
-
-     
-          <button className="remind-btn" onClick={handleRemind}>
-            Remind Me
-          </button>
         </div>
       </div>
-
       <div className="task-actions">
         <FiEdit
-          className="edit-btn icon-style"
+          className="edit-btn-btn icon-style"
           onClick={(e) => {
             e.stopPropagation();
-            onEdit(task);
+            onEdit(); // triggers modal opening
           }}
           aria-label="Edit task"
         />
@@ -236,7 +197,72 @@ const Task = ({
       </div>
     </div>
   );
+};
 
+const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
+  const [title, setTitle] = useState("");
+  const [date, setDate] = useState("");
+  const [time, setTime] = useState("");
+
+  useEffect(() => {
+    if (task) {
+      setTitle(task.title);
+      setDate(task.date);
+      setTime(task.time);
+    }
+  }, [task]);
+
+  const handleSave = () => {
+    onSave({
+      ...task,
+      title,
+      date,
+      time,
+    });
+  };
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="edit-modal-overlay">
+      <div className="edit-modal-content">
+        <h2 className="edit-modal-title">Edit Task</h2>
+
+        <label className="edit-label">Title:</label>
+        <input
+          type="text"
+          className="edit-input"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+        />
+
+        <label className="edit-label">Date:</label>
+        <input
+          type="date"
+          className="edit-input"
+          value={date}
+          onChange={(e) => setDate(e.target.value)}
+        />
+
+        <label className="edit-label">Time:</label>
+        <input
+          type="time"
+          className="edit-input"
+          value={time}
+          onChange={(e) => setTime(e.target.value)}
+        />
+
+        <div className="edit-modal-buttons">
+          <button className="edit-btn save" onClick={handleSave}>
+            Save
+          </button>
+          <button className="edit-btn cancel" onClick={onClose}>
+            Cancel
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 };
 
 export { TaskList };

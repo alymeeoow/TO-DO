@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { FiPlus, FiTrash, FiClipboard } from "react-icons/fi";
 import TaskModal from "./modal/task_modal";
+import TaskEditModal from "./modal/edit_task_modal"; 
 import TaskTypeModal from "./modal/task_type_modal";
-import {TaskList} from "./task";
+import { TaskList } from "./task";
 import ConfirmModal from "./modal/confirm_modal";
 import "../assets/styles/todo_list.css";
 
@@ -33,6 +34,7 @@ const TodoList = () => {
   const [confirmAction, setConfirmAction] = useState(null);
   const [confirmMessage, setConfirmMessage] = useState("");
   const [confirmTitle, setConfirmTitle] = useState("");
+  const [taskBeingEdited, setTaskBeingEdited] = useState(null); 
 
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -44,6 +46,12 @@ const TodoList = () => {
 
   const addTask = (task) => {
     setTasks((prevTasks) => [...prevTasks, { ...task, id: Date.now() }]);
+  };
+
+  const updateTask = (updatedTask) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
+    );
   };
 
   const addTaskType = (taskType) => {
@@ -153,35 +161,41 @@ const TodoList = () => {
                 Delete Placeholder
               </button>
             )}
-            <button className="add-task-btn" onClick={() => setShowModal(true)}>
+            <button
+              className="add-task-btn"
+              onClick={() => {
+                setTaskBeingEdited(null);
+                setShowModal(true);
+              }}
+            >
               <FiPlus /> Add To-Do
             </button>
           </div>
         </div>
 
         <div className="tasks">
-  <TaskList
-    tasks={tasks.filter((task) => task.category === selectedTaskType)}
-    onToggleComplete={(id) => {
-      setTasks((prev) =>
-        prev.map((task) =>
-          task.id === id ? { ...task, completed: !task.completed } : task
-        )
-      );
-    }}
-    onDelete={(id) => handleDeleteRequest("Task", id)}
-    onEdit={(task) => {
-      setShowModal(true);
-
-    }}
-    selectedTasks={selectedTasks}
-    onToggleSelect={toggleTaskSelection}
-  />
-</div>
-
+          <TaskList
+            tasks={tasks.filter((task) => task.category === selectedTaskType)}
+            onToggleComplete={(id) => {
+              setTasks((prev) =>
+                prev.map((task) =>
+                  task.id === id ? { ...task, completed: !task.completed } : task
+                )
+              );
+            }}
+            onDelete={(id) => handleDeleteRequest("Task", id)}
+            onEdit={(task) => {
+              setTaskBeingEdited(task); 
+              setShowModal(true);      
+            }}
+            selectedTasks={selectedTasks}
+            onToggleSelect={toggleTaskSelection}
+          />
+        </div>
       </div>
 
-      {showModal && (
+    
+      {showModal && !taskBeingEdited && (
         <TaskModal
           onClose={() => setShowModal(false)}
           addTask={addTask}
@@ -189,12 +203,28 @@ const TodoList = () => {
           defaultCategory={selectedTaskType}
         />
       )}
+
+      {showModal && taskBeingEdited && (
+        <TaskEditModal
+          isOpen={showModal}
+          task={taskBeingEdited}
+          onClose={() => {
+            setTaskBeingEdited(null);
+            setShowModal(false);
+          }}
+          onSave={updateTask}
+        />
+      )}
+
+  
       {showTaskTypeModal && (
         <TaskTypeModal
           onClose={() => setShowTaskTypeModal(false)}
           addTaskType={addTaskType}
         />
       )}
+
+    
       {showConfirmModal && (
         <ConfirmModal
           isOpen={showConfirmModal}
