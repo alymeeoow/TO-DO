@@ -116,13 +116,12 @@ const Task = ({
     const now = new Date();
     const isToday = taskDateTime.toDateString() === now.toDateString();
   
-   
-    const isLocalhost = window.location.hostname === "localhost" || 
-                        window.location.hostname.startsWith("192.168.") || 
-                        window.location.hostname === "127.0.0.1";
+    const isLocalhost =
+      window.location.hostname === "localhost" ||
+      window.location.hostname.startsWith("192.168.") ||
+      window.location.hostname === "127.0.0.1";
   
     if (isToday) {
-     
       if ("Notification" in window) {
         if (Notification.permission === "granted") {
           new Notification("⏰ Task Reminder", {
@@ -134,33 +133,30 @@ const Task = ({
               new Notification("⏰ Task Reminder", {
                 body: `${task.title} at ${formatTime(task.time)}`
               });
-            } else {
-             
             }
           });
-        } else {
-      
         }
-      } else {
- 
       }
   
-
       if (isLocalhost) {
         console.log("🧪 Localhost detected - using fallback alert.");
-       
       }
     } else {
+      const start = new Date(`${task.date}T${task.time}`);
+      const end = new Date(start.getTime() + 30 * 60000); // +30 minutes
   
-      const calendarEvent = generateICS(task);
-      const blob = new Blob([calendarEvent], { type: "text/calendar;charset=utf-8" });
-      const url = URL.createObjectURL(blob);
+      const formatForGoogle = (date) =>
+        date.toISOString().replace(/-|:|\.\d\d\d/g, "");
   
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `${task.title.replace(/\s+/g, "_")}.ics`;
-      a.click();
-      URL.revokeObjectURL(url);
+      const googleCalendarUrl = `https://www.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(
+        task.title
+      )}&dates=${formatForGoogle(start)}/${formatForGoogle(
+        end
+      )}&details=${encodeURIComponent(
+        `Reminder for task: ${task.title}`
+      )}&sf=true&output=xml`;
+  
+      window.open(googleCalendarUrl, "_blank");
     }
   };
   
