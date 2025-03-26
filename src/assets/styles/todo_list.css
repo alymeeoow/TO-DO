@@ -195,6 +195,7 @@
   }
   
   .delete-btn, .edit-btn {
+    
     font-size: clamp(1rem, 2vw, 1.25rem);
     cursor: pointer;
     transition: var(--transition);
@@ -214,6 +215,7 @@
     margin: 1.5rem 0;
   }
   .task-actions {
+ 
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -223,6 +225,7 @@
   
   
   .delete-all-btn.hidden-placeholder {
+  
     visibility: hidden;
     height: 0;
     padding: 0;
@@ -253,19 +256,22 @@
   }
 
   .delete-all-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background-color: #FF6B6B;
-  color: black;
-  font-weight: bold;
-  border: 2px solid black;
-  width: auto;
-  padding: 0.75rem 1rem;
-  font-size: clamp(0.875rem, 2vw, 1rem);
-  border-radius: 8px;
-  cursor: pointer;
-  max-width: none;
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #fb6b6b;
+    font-weight: bold;
+    color: black;
+    border: 2px solid black;
+    padding: 0.75rem 1rem;
+    font-size: clamp(0.875rem, 2vw, 1rem);
+    border-radius: 8px;
+    cursor: pointer;
+    width: auto;
+    max-width: none;
+
+    transition: var(--transition);
 
 }
 

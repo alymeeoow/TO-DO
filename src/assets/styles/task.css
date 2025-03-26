@@ -50,6 +50,7 @@
 }
 
 .delete-btn {
+  
     background: none;
     border: none;
     cursor: pointer;
@@ -63,6 +64,7 @@
 }
 
 .task-actions {
+
     display: flex;
     align-items: center;
     gap: 10px; 
@@ -309,3 +311,6 @@
     cursor: pointer;
     transition: 0.3s;
   }
+  
+
+  
