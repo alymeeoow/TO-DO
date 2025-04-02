@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from "react";
 
-
 const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
   const [title, setTitle] = useState("");
   const [date, setDate] = useState("");
@@ -12,7 +11,7 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
       setTitle(task.title || "");
       setDate(task.date || "");
       setTime(task.time || "");
-      setError("");
+      setError(""); 
     }
   }, [task]);
 
@@ -40,7 +39,7 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
       time,
     });
 
-    onClose();
+    onClose(); 
   };
 
   if (!isOpen) return null;
@@ -78,7 +77,7 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
 
         <div className="edit-modal-buttons">
           <button className="edit-btn save" onClick={handleSave}>
-            Save
+            Update
           </button>
           <button className="edit-btn cancel" onClick={onClose}>
             Cancel
