@@ -1,0 +1,73 @@
+.edit-task-type-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+  }
+  
+  .edit-task-type-modal {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+    width: 300px;
+  }
+  
+  .edit-task-type-title {
+    margin-bottom: 15px;
+    text-align: center;
+    font-size: 20px;
+  }
+  
+  .edit-task-type-input {
+    width: 100%;
+    font-size: 18px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    margin-bottom: 10px;
+  }
+  
+  .edit-task-type-buttons {
+    display: flex;
+    justify-content: space-between;
+    margin-top: 10px;
+  }
+  
+  .edit-task-type-save-btn {
+    background: #C3B091;
+    color: black;
+    font-weight: bold;
+    border: 2px solid black;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+  
+  .edit-task-type-close-btn {
+    background: #f0f0f0;
+    color: black;
+    font-weight: bold;
+    border: 2px solid black;
+    padding: 10px 15px;
+    border-radius: 5px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: 0.3s;
+  }
+
+
+  .edit-task-type-error-message{
+
+
+    color: red;
+    margin-bottom: 10px;
+  }

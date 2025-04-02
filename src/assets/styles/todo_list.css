@@ -88,12 +88,26 @@
   
   .icon {
     margin-right: 0.75rem;
-    font-size: clamp(1rem, 3vw, 1.5rem);
+    font-size: clamp(2rem, 3vw, 1.5rem);
+  }
+
+  .task-type-label{
+
+    display: flex;
+    align-items: center;
   }
   
-  .delete-icon {
+  .delete-icon  {
     cursor: pointer;
-    color: #ff6b6b;
+    color: #ff6b6b!important;
+    font-size: clamp(1rem, 3vw, 1.25rem);
+    margin-left: auto;
+    transition: var(--transition);
+  }
+
+  .delete-btn  {
+    cursor: pointer;
+    color: #ff6b6b!important;
     font-size: clamp(1rem, 3vw, 1.25rem);
     margin-left: auto;
     transition: var(--transition);
@@ -144,6 +158,7 @@
     border-radius: 8px;
     display: flex;
     align-items: center;
+    border-left: 4px solid #C3B091;
     gap: 1rem;
     transition: var(--transition);
   }
@@ -279,6 +294,153 @@
   transform: scale(1.03);
 
 }
+.task-type {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  
+  padding: 8px 12px;
+
+  cursor: pointer;
+}
+
+.task-type-actions {
+  display: flex;
+  gap: 8px;
+}
+
+
+.clipboard-icon-wrapper {
+  position: relative;
+  display: inline-block;
+  margin-right: 8px;
+}
+
+
+
+.clipboard-inner-count {
+  position: absolute;
+  top: 50%;
+  left: 35%;
+  transform: translate(-50%, -50%);
+  color: #4a5568; 
+  font-size: clamp(0.5rem, 1vw, 1rem); 
+  font-weight: bold;
+  pointer-events: none;
+}
+
+
+.clipboard-badge {
+  transition: all 0.2s ease;
+  transform: scale(1);
+}
+
+.clipboard-badge:hover {
+  transform: scale(1.1);
+}
+
+
+
+.clipboard-icon-wrapper {
+  position: relative;
+  display: inline-block;
+}
+
+.clipboard-icon-wrapper:hover::after {
+  content: "Pending tasks";
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color:#C3B091;
+  color: black;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  white-space: nowrap;
+  z-index: 10;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.clipboard-icon-wrapper:hover::after {
+  opacity: 1;
+  margin-bottom: 5px;
+}
+
+
+
+.task.completed {
+  position: relative;
+  background-color: #f9f9f9;
+  border-left: 4px solid #2E8B57;
+  transition: all 0.3s ease;
+}
+
+.task.completed .task-title {
+  text-decoration: line-through;
+  color: #666;
+}
+
+.task.completed .task-datetime {
+  color: #888;
+}
+
+
+.edit-type-icon {
+  font-size: clamp(1rem, 3vw, 1.25rem);
+  cursor: pointer;
+
+  transition: color 0.2s;
+}
+
+.edit-type-icon:hover {
+  transform: scale(1.05);
+  color: #4dabf7; 
+}
+
+
+
+
+.task-checked-at {
+
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, sans-serif;
+  font-size: 1rem; 
+  color: var(--text-primary);
+  margin-top: 8px; 
+  padding: 6px 12px; 
+  border-radius: 8px;
+  background-color: rgba(0, 0, 0, 0.1); 
+  border: 1px solid #ddd; 
+  display: inline-block;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1); 
+  transition: all 0.3s ease-in-out; 
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.task-checked-at:hover {
+  background-color: rgba(0, 0, 0, 0.2); 
+  border-color: #888; 
+  transform: translateY(-2px); 
+}
+
+.task-checked-at strong {
+  font-weight: bold;
+  color: #333;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 
 
   

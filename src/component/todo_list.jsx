@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
-import { FiPlus, FiTrash, FiClipboard } from "react-icons/fi";
+import { FiPlus, FiTrash2, FiClipboard, FiEdit } from "react-icons/fi";
 import TaskModal from "./modal/task_modal";
-import TaskEditModal from "./modal/edit_task_modal"; 
+import TaskEditModal from "./modal/edit_task_modal";
 import TaskTypeModal from "./modal/task_type_modal";
-import { TaskList } from "./task";
+import EditTaskTypeModal from "./modal/edit_task_type_modal";
 import ConfirmModal from "./modal/confirm_modal";
+import { TaskList } from "./task";
 import "../assets/styles/todo_list.css";
 
 const TodoList = () => {
@@ -16,6 +17,14 @@ const TodoList = () => {
       return [];
     }
   });
+
+
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+
+
+  const toggleSidebar = () => {
+    setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
 
   const [taskTypes, setTaskTypes] = useState(() => {
     try {
@@ -29,12 +38,17 @@ const TodoList = () => {
   const [selectedTasks, setSelectedTasks] = useState([]);
   const [showModal, setShowModal] = useState(false);
   const [showTaskTypeModal, setShowTaskTypeModal] = useState(false);
-  const [selectedTaskType, setSelectedTaskType] = useState(taskTypes[0] || "Default");
+  const [showEditTaskTypeModal, setShowEditTaskTypeModal] = useState(false);
+  const [selectedTaskType, setSelectedTaskType] = useState(
+    taskTypes[0] || "Default"
+  );
+  const [editingTaskType, setEditingTaskType] = useState(null);
+  const [newTaskTypeName, setNewTaskTypeName] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null);
   const [confirmMessage, setConfirmMessage] = useState("");
   const [confirmTitle, setConfirmTitle] = useState("");
-  const [taskBeingEdited, setTaskBeingEdited] = useState(null); 
+  const [taskBeingEdited, setTaskBeingEdited] = useState(null);
 
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -45,13 +59,23 @@ const TodoList = () => {
   }, [taskTypes]);
 
   const addTask = (task) => {
-    setTasks((prevTasks) => [...prevTasks, { ...task, id: Date.now() }]);
+    setTasks((prevTasks) => [
+      ...prevTasks,
+      { ...task, id: Date.now(), createdAt: new Date().toISOString() }, // Adding createdAt timestamp
+    ]);
   };
 
-  const updateTask = (updatedTask) => {
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    return date.toLocaleString(); // Format the date as you need
+  };
+
+  const updateTask = async (updatedTask) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
     );
+    setTaskBeingEdited(null);
+    setShowModal(false);
   };
 
   const addTaskType = (taskType) => {
@@ -63,7 +87,9 @@ const TodoList = () => {
     if (taskTypes.length === 1) return;
     const updatedTaskTypes = taskTypes.filter((type) => type !== taskType);
     setTaskTypes(updatedTaskTypes);
-    setTasks((prevTasks) => prevTasks.filter((task) => task.category !== taskType));
+    setTasks((prevTasks) =>
+      prevTasks.filter((task) => task.category !== taskType)
+    );
     if (selectedTaskType === taskType) {
       setSelectedTaskType(updatedTaskTypes[0] || "Default");
     }
@@ -82,7 +108,9 @@ const TodoList = () => {
   };
 
   const deleteSelectedTasks = () => {
-    setTasks((prevTasks) => prevTasks.filter((task) => !selectedTasks.includes(task.id)));
+    setTasks((prevTasks) =>
+      prevTasks.filter((task) => !selectedTasks.includes(task.id))
+    );
     setSelectedTasks([]);
   };
 
@@ -113,32 +141,82 @@ const TodoList = () => {
     setShowConfirmModal(true);
   };
 
+  const updateTaskType = (newType) => {
+    if (!newType.trim() || taskTypes.includes(newType)) return;
+    const updatedTaskTypes = taskTypes.map((type) =>
+      type === editingTaskType ? newType : type
+    );
+    setTaskTypes(updatedTaskTypes);
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.category === editingTaskType
+          ? { ...task, category: newType }
+          : task
+      )
+    );
+    setSelectedTaskType(newType);
+    setShowEditTaskTypeModal(false);
+  };
+
+  const onToggleSelect = (taskId) => {
+    setTasks((prevTasks) =>
+      prevTasks.map((task) =>
+        task.id === taskId
+          ? { ...task, completed: !task.completed, checkedAt: !task.completed ? new Date().toISOString() : null }
+          : task
+      )
+    );
+  };
+  
+
   return (
     <div className="todo-wrapper">
       <div className="sidebar">
         <h2>Just Do-it</h2>
         <p className="username">JD x Journey</p>
         <ul>
-          {taskTypes.map((type, index) => (
-            <li
-              key={index}
-              className={`task-type ${selectedTaskType === type ? "active" : ""}`}
-              onClick={() => setSelectedTaskType(type)}
-            >
-              <span>
-                <FiClipboard className="icon" /> {type}
-              </span>
-              {type !== "Default" && (
-                <FiTrash
-                  className="delete-icon"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    handleDeleteRequest("To-Do Type", type);
-                  }}
-                />
-              )}
-            </li>
-          ))}
+          {taskTypes.map((type, index) => {
+            const pendingTaskCount = tasks.filter(
+              (task) => task.category === type && !task.completed
+            ).length;
+            return (
+              <li
+                key={index}
+                className={`task-type ${selectedTaskType === type ? "active" : ""}`}
+                onClick={() => setSelectedTaskType(type)}
+              >
+                <span className="task-type-label">
+                  <span className="clipboard-icon-wrapper">
+                    <FiClipboard className="icon clipboard-badge" />
+                    {pendingTaskCount > 0 && (
+                      <span className="clipboard-inner-count">{pendingTaskCount}</span>
+                    )}
+                  </span>
+                  {type}
+                </span>
+                <div className="task-type-actions">
+                  <FiEdit
+                    className="edit-type-icon"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setEditingTaskType(type);
+                      setNewTaskTypeName(type);
+                      setShowEditTaskTypeModal(true);
+                    }}
+                  />
+                  {type !== "Default" && (
+                    <FiTrash2
+                      className="delete-icon"
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteRequest("To-Do Type", type);
+                      }}
+                    />
+                  )}
+                </div>
+              </li>
+            );
+          })}
           <li className="add-filter" onClick={() => setShowTaskTypeModal(true)}>
             <FiPlus className="icon" /> Add To-Do Type
           </li>
@@ -174,27 +252,33 @@ const TodoList = () => {
         </div>
 
         <div className="tasks">
-          <TaskList
-            tasks={tasks.filter((task) => task.category === selectedTaskType)}
-            onToggleComplete={(id) => {
-              setTasks((prev) =>
-                prev.map((task) =>
-                  task.id === id ? { ...task, completed: !task.completed } : task
-                )
-              );
-            }}
-            onDelete={(id) => handleDeleteRequest("Task", id)}
-            onEdit={(task) => {
-              setTaskBeingEdited(task); 
-              setShowModal(true);      
-            }}
-            selectedTasks={selectedTasks}
-            onToggleSelect={toggleTaskSelection}
-          />
+        <TaskList
+  tasks={tasks.filter((task) => task.category === selectedTaskType)}
+  onToggleComplete={(id) => {
+    setTasks((prev) =>
+      prev.map((task) =>
+        task.id === id
+          ? {
+              ...task,
+              completed: !task.completed,
+              checkedAt: !task.completed ? new Date().toISOString() : null,
+            }
+          : task
+      )
+    );
+  }}
+  onDelete={(id) => handleDeleteRequest("Task", id)}
+  onEdit={(task) => {
+    setTaskBeingEdited(task);
+    setShowModal(true);
+  }}
+  selectedTasks={selectedTasks}
+  onToggleSelect={toggleTaskSelection}
+  formatDate={formatDate}
+/>
         </div>
       </div>
 
-    
       {showModal && !taskBeingEdited && (
         <TaskModal
           onClose={() => setShowModal(false)}
@@ -212,19 +296,31 @@ const TodoList = () => {
             setTaskBeingEdited(null);
             setShowModal(false);
           }}
-          onSave={updateTask}
+          onSave={(updatedTask) => {
+            setTasks((prev) =>
+              prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
+            );
+            setShowModal(false);
+          }}
         />
       )}
 
-  
+      {showEditTaskTypeModal && (
+        <EditTaskTypeModal
+          taskType={editingTaskType}
+          taskTypes={taskTypes}
+          onSave={updateTaskType}
+          onClose={() => setShowEditTaskTypeModal(false)}
+        />
+      )}
       {showTaskTypeModal && (
         <TaskTypeModal
+          isOpen={showTaskTypeModal}
           onClose={() => setShowTaskTypeModal(false)}
           addTaskType={addTaskType}
         />
       )}
 
-    
       {showConfirmModal && (
         <ConfirmModal
           isOpen={showConfirmModal}
