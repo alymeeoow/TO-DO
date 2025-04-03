@@ -6,18 +6,10 @@ const TaskModal = ({ onClose, addTask, taskTypes, defaultCategory }) => {
   const [date, setDate] = useState("");
   const [time, setTime] = useState("");
   const [category, setCategory] = useState(defaultCategory || (taskTypes.length > 0 ? taskTypes[0] : ""));
-  const [errorMessage, setErrorMessage] = useState("");
-
-  const isPastDateTime = () => {
-    if (!date || !time) return false;
-    const selectedDateTime = new Date(`${date}T${time}`);
-    return selectedDateTime < new Date();
-  };
-
+  
   const handleSubmit = (e) => {
     e.preventDefault();
-    if (!title || !date || !time || !category || isPastDateTime()) {
-      setErrorMessage("You cannot input a past date or time.");
+    if (!title || !category) {
       return;
     }
 
@@ -25,7 +17,6 @@ const TaskModal = ({ onClose, addTask, taskTypes, defaultCategory }) => {
 
     addTask(newTask);
 
-   
     const storedTasks = JSON.parse(localStorage.getItem("tasks")) || [];
     localStorage.setItem("tasks", JSON.stringify([...storedTasks, newTask]));
 
@@ -37,33 +28,32 @@ const TaskModal = ({ onClose, addTask, taskTypes, defaultCategory }) => {
       <div className="modal">
         <h2>Add Task</h2>
         <form onSubmit={handleSubmit}>
-          {isPastDateTime() && <p className="error-message">You cannot input a past date or time.</p>}
           <input
             type="text"
-            placeholder="Task Title"
+            placeholder="Task Description"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
+            required
           />
           <input
             type="date"
             value={date}
             onChange={(e) => setDate(e.target.value)}
-            className={isPastDateTime() ? "error-input" : ""}
           />
           <input
             type="time"
             value={time}
             onChange={(e) => setTime(e.target.value)}
-            className={isPastDateTime() ? "error-input" : ""}
           />
-          <input
+          <input className="type"
             type="text"
             value={category}
             disabled={!!defaultCategory} 
             onChange={(e) => setCategory(e.target.value)}
+            required
           />
           <div className="modal-buttons">
-            <button type="submit" className="save-btn" disabled={isPastDateTime()}>Add</button>
+            <button type="submit" className="save-btn">Add</button>
             <button type="button" className="close-btn" onClick={onClose}>Cancel</button>
           </div>
         </form>

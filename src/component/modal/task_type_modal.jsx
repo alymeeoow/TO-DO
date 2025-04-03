@@ -21,7 +21,7 @@ const TaskTypeModal = ({ onClose, addTaskType }) => {
   return (
     <div className="task-type-modal-overlay">
       <div className="task-type-modal">
-        <h2>Add Task Type</h2>
+        <h2>Add Task Category</h2>
         <form onSubmit={handleSubmit}>
           <input
             type="text"

@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { FiPlus, FiTrash2, FiClipboard, FiEdit } from "react-icons/fi";
+import React, { useState, useEffect, useRef } from "react";
+import { FiPlus, FiTrash2, FiClipboard, FiEdit, FiHelpCircle } from "react-icons/fi";
 import TaskModal from "./modal/task_modal";
 import TaskEditModal from "./modal/edit_task_modal";
 import TaskTypeModal from "./modal/task_type_modal";
@@ -18,14 +18,6 @@ const TodoList = () => {
     }
   });
 
-
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
-
-
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
-  };
-
   const [taskTypes, setTaskTypes] = useState(() => {
     try {
       const savedTaskTypes = localStorage.getItem("taskTypes");
@@ -39,9 +31,7 @@ const TodoList = () => {
   const [showModal, setShowModal] = useState(false);
   const [showTaskTypeModal, setShowTaskTypeModal] = useState(false);
   const [showEditTaskTypeModal, setShowEditTaskTypeModal] = useState(false);
-  const [selectedTaskType, setSelectedTaskType] = useState(
-    taskTypes[0] || "Default"
-  );
+  const [selectedTaskType, setSelectedTaskType] = useState(taskTypes[0] || "Default");
   const [editingTaskType, setEditingTaskType] = useState(null);
   const [newTaskTypeName, setNewTaskTypeName] = useState("");
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -49,6 +39,44 @@ const TodoList = () => {
   const [confirmMessage, setConfirmMessage] = useState("");
   const [confirmTitle, setConfirmTitle] = useState("");
   const [taskBeingEdited, setTaskBeingEdited] = useState(null);
+  const [tutorialMode, setTutorialMode] = useState(false);
+  const [currentStep, setCurrentStep] = useState(0);
+  const tutorialPopupRef = useRef(null);
+  const [popupPosition, setPopupPosition] = useState({
+    top: 0,
+    left: 0,
+    width: 400,
+    arrowLeft: "50%",
+    positionClass: "below"
+  });
+
+  const tutorialSteps = [
+    {
+      element: ".task-type.active",
+      title: "Task Categories",
+      description: "These are your task categories. Click to switch between them."
+    },
+    {
+      element: ".add-filter",
+      title: "Add Category",
+      description: "Click here to add a new task category."
+    },
+    {
+      element: ".add-task-btn",
+      title: "Add Task",
+      description: "Click this button to create a new task."
+    },
+    {
+      element: ".delete-all-btn:not(.hidden-placeholder)",
+      title: "Delete Tasks",
+      description: "Select tasks and click here to delete multiple at once."
+    },
+    {
+      element: ".task",
+      title: "Task Management",
+      description: "Click the icons to edit, complete, or delete individual tasks."
+    }
+  ];
 
   useEffect(() => {
     localStorage.setItem("tasks", JSON.stringify(tasks));
@@ -58,19 +86,59 @@ const TodoList = () => {
     localStorage.setItem("taskTypes", JSON.stringify(taskTypes));
   }, [taskTypes]);
 
+  useEffect(() => {
+    if (tutorialMode) {
+      const currentElement = document.querySelector(tutorialSteps[currentStep].element);
+      if (currentElement) {
+        const elementRect = currentElement.getBoundingClientRect();
+        const viewportHeight = window.innerHeight;
+        const viewportWidth = window.innerWidth;
+        
+        // Calculate popup position
+        let topPosition = elementRect.bottom + window.scrollY + 15;
+        let leftPosition = elementRect.left + window.scrollX;
+        let width = Math.min(400, viewportWidth - 40);
+        let arrowLeft = "50%";
+        let positionClass = "below";
+
+        // Adjust if popup would go off screen
+        if (topPosition + 200 > viewportHeight + window.scrollY) {
+          topPosition = elementRect.top + window.scrollY - 200 - 15;
+          positionClass = "above";
+        }
+
+        // Adjust for edge cases
+        if (leftPosition + width > viewportWidth + window.scrollX) {
+          leftPosition = viewportWidth + window.scrollX - width - 20;
+          arrowLeft = `${elementRect.right - leftPosition - 12}px`;
+        }
+
+        setPopupPosition({
+          top: topPosition,
+          left: leftPosition,
+          width,
+          arrowLeft,
+          positionClass
+        });
+
+        // Scroll to element
+        currentElement.scrollIntoView({
+          behavior: 'smooth',
+          block: 'center',
+          inline: 'nearest'
+        });
+      }
+    }
+  }, [tutorialMode, currentStep]);
+
   const addTask = (task) => {
     setTasks((prevTasks) => [
       ...prevTasks,
-      { ...task, id: Date.now(), createdAt: new Date().toISOString() }, // Adding createdAt timestamp
+      { ...task, id: Date.now(), createdAt: new Date().toISOString() },
     ]);
   };
 
-  const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleString(); // Format the date as you need
-  };
-
-  const updateTask = async (updatedTask) => {
+  const updateTask = (updatedTask) => {
     setTasks((prevTasks) =>
       prevTasks.map((task) => (task.id === updatedTask.id ? updatedTask : task))
     );
@@ -85,7 +153,7 @@ const TodoList = () => {
 
   const deleteTaskType = (taskType) => {
     if (taskTypes.length === 1) return;
-    const updatedTaskTypes = taskTypes.filter((type) => type !== taskType);
+    const updatedTaskTypes = taskTypes.filter((category) => category !== taskType);
     setTaskTypes(updatedTaskTypes);
     setTasks((prevTasks) =>
       prevTasks.filter((task) => task.category !== taskType)
@@ -126,18 +194,18 @@ const TodoList = () => {
     } else {
       setConfirmTitle(`Delete ${type}?`);
       setConfirmMessage(
-        type === "To-Do Type"
-          ? `Are you sure you want to delete the "${item}" To-Do Type? All associated tasks will be permanently removed.`
+        type === "To-Do Category" // Changed from "To-Do Type"
+          ? `Are you sure you want to delete the "${item}" To-Do Category? All associated tasks will be permanently removed.`
           : `Are you sure you want to delete this task?`
       );
-
-      if (type === "To-Do Type") {
+  
+      if (type === "To-Do Category") { // Changed from "To-Do Type"
         setConfirmAction(() => () => deleteTaskType(item));
       } else if (type === "Task") {
         setConfirmAction(() => () => deleteTask(item));
       }
     }
-
+  
     setShowConfirmModal(true);
   };
 
@@ -167,60 +235,96 @@ const TodoList = () => {
       )
     );
   };
-  
+
+  const startTutorial = () => {
+    setTutorialMode(true);
+    setCurrentStep(0);
+  };
+
+  const nextStep = () => {
+    if (currentStep < tutorialSteps.length - 1) {
+      setCurrentStep(currentStep + 1);
+    } else {
+      setTutorialMode(false);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 0) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
 
   return (
     <div className="todo-wrapper">
+      {/* Tutorial Help Button */}
+      <button 
+        className="tutorial-btn"
+        onClick={startTutorial}
+        aria-label="Start tutorial"
+      >
+        <FiHelpCircle className="tutorial-icon" />
+        Help
+      </button>
+
       <div className="sidebar">
         <h2>Just Do-it</h2>
         <p className="username">JD x Journey</p>
         <ul>
-          {taskTypes.map((type, index) => {
-            const pendingTaskCount = tasks.filter(
-              (task) => task.category === type && !task.completed
-            ).length;
-            return (
-              <li
-                key={index}
-                className={`task-type ${selectedTaskType === type ? "active" : ""}`}
-                onClick={() => setSelectedTaskType(type)}
-              >
-                <span className="task-type-label">
-                  <span className="clipboard-icon-wrapper">
-                    <FiClipboard className="icon clipboard-badge" />
-                    {pendingTaskCount > 0 && (
-                      <span className="clipboard-inner-count">{pendingTaskCount}</span>
-                    )}
-                  </span>
-                  {type}
-                </span>
-                <div className="task-type-actions">
-                  <FiEdit
-                    className="edit-type-icon"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      setEditingTaskType(type);
-                      setNewTaskTypeName(type);
-                      setShowEditTaskTypeModal(true);
-                    }}
-                  />
-                  {type !== "Default" && (
-                    <FiTrash2
-                      className="delete-icon"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteRequest("To-Do Type", type);
-                      }}
-                    />
-                  )}
-                </div>
-              </li>
-            );
-          })}
-          <li className="add-filter" onClick={() => setShowTaskTypeModal(true)}>
-            <FiPlus className="icon" /> Add To-Do Type
-          </li>
-        </ul>
+  <li className="categories-label">
+    <span className="categories-span">My Categories</span>
+  </li>
+  {taskTypes.map((type, index) => {
+    const pendingTaskCount = tasks.filter(
+      (task) => task.category === type && !task.completed
+    ).length;
+    return (
+      <li
+        key={index}
+        className={`task-type ${selectedTaskType === type ? "active" : ""} ${
+          tutorialMode && currentStep === 0 ? "tutorial-highlight" : ""
+        }`}
+        onClick={() => setSelectedTaskType(type)}
+      >
+        <span className="task-type-label">
+          <span className="clipboard-icon-wrapper">
+            <FiClipboard className="icon clipboard-badge" />
+            {pendingTaskCount > 0 && (
+              <span className="clipboard-inner-count">{pendingTaskCount}</span>
+            )}
+          </span>
+          {type}
+        </span>
+        <div className="task-type-actions">
+          <FiEdit
+            className="edit-type-icon"
+            onClick={(e) => {
+              e.stopPropagation();
+              setEditingTaskType(type);
+              setNewTaskTypeName(type);
+              setShowEditTaskTypeModal(true);
+            }}
+          />
+          {type !== "Default" && (
+            <FiTrash2
+              className="delete-icon"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleDeleteRequest("To-Do Category", type);
+              }}
+            />
+          )}
+        </div>
+      </li>
+    );
+  })}
+  <li 
+    className={`add-filter ${tutorialMode && currentStep === 1 ? "tutorial-highlight" : ""}`} 
+    onClick={() => setShowTaskTypeModal(true)}
+  >
+    <FiPlus className="icon" /> Add To-Do Category
+  </li>
+</ul>
       </div>
 
       <div className="main-content">
@@ -229,7 +333,9 @@ const TodoList = () => {
           <div className="task-actions">
             {selectedTasks.length > 0 ? (
               <button
-                className="delete-all-btn"
+                className={`delete-all-btn ${
+                  tutorialMode && currentStep === 3 ? "tutorial-highlight" : ""
+                }`}
                 onClick={() => handleDeleteRequest("Bulk Tasks")}
               >
                 Delete Selected ({selectedTasks.length})
@@ -240,7 +346,9 @@ const TodoList = () => {
               </button>
             )}
             <button
-              className="add-task-btn"
+              className={`add-task-btn ${
+                tutorialMode && currentStep === 2 ? "tutorial-highlight" : ""
+              }`}
               onClick={() => {
                 setTaskBeingEdited(null);
                 setShowModal(true);
@@ -252,33 +360,71 @@ const TodoList = () => {
         </div>
 
         <div className="tasks">
-        <TaskList
-  tasks={tasks.filter((task) => task.category === selectedTaskType)}
-  onToggleComplete={(id) => {
-    setTasks((prev) =>
-      prev.map((task) =>
-        task.id === id
-          ? {
-              ...task,
-              completed: !task.completed,
-              checkedAt: !task.completed ? new Date().toISOString() : null,
-            }
-          : task
-      )
-    );
-  }}
-  onDelete={(id) => handleDeleteRequest("Task", id)}
-  onEdit={(task) => {
-    setTaskBeingEdited(task);
-    setShowModal(true);
-  }}
-  selectedTasks={selectedTasks}
-  onToggleSelect={toggleTaskSelection}
-  formatDate={formatDate}
-/>
+          <TaskList
+            tasks={tasks.filter((task) => task.category === selectedTaskType)}
+            onToggleComplete={(id) => {
+              setTasks((prev) =>
+                prev.map((task) =>
+                  task.id === id
+                    ? {
+                        ...task,
+                        completed: !task.completed,
+                        checkedAt: !task.completed ? new Date().toISOString() : null,
+                      }
+                    : task
+                )
+              );
+            }}
+            onDelete={(id) => handleDeleteRequest("Task", id)}
+            onEdit={(task) => {
+              setTaskBeingEdited(task);
+              setShowModal(true);
+            }}
+            selectedTasks={selectedTasks}
+            onToggleSelect={toggleTaskSelection}
+            tutorialMode={tutorialMode}
+          />
         </div>
       </div>
 
+      {/* Tutorial Popup */}
+      {tutorialMode && (
+        <div 
+          className="tutorial-popup-container" 
+          ref={tutorialPopupRef}
+          style={{
+            top: `${popupPosition.top}px`,
+            left: `${popupPosition.left}px`,
+            width: `${popupPosition.width}px`
+          }}
+        >
+          <div className="tutorial-popup">
+            <h3>{tutorialSteps[currentStep].title}</h3>
+            <p>{tutorialSteps[currentStep].description}</p>
+            <div className="tutorial-navigation">
+              {currentStep > 0 && (
+                <button onClick={prevStep} className="tutorial-nav-btn">
+                  Previous
+                </button>
+              )}
+              <button onClick={nextStep} className="tutorial-nav-btn">
+                {currentStep === tutorialSteps.length - 1 ? "Finish" : "Next"}
+              </button>
+            </div>
+          </div>
+          <div 
+            className={`tutorial-arrow ${
+              popupPosition.positionClass === "above" ? "arrow-bottom" : "arrow-top"
+            }`}
+            style={{ left: popupPosition.arrowLeft }}
+          ></div>
+        </div>
+      )}
+
+      {/* Tutorial Overlay */}
+      {tutorialMode && <div className="tutorial-overlay"></div>}
+
+      {/* Existing modals */}
       {showModal && !taskBeingEdited && (
         <TaskModal
           onClose={() => setShowModal(false)}
@@ -296,12 +442,7 @@ const TodoList = () => {
             setTaskBeingEdited(null);
             setShowModal(false);
           }}
-          onSave={(updatedTask) => {
-            setTasks((prev) =>
-              prev.map((t) => (t.id === updatedTask.id ? updatedTask : t))
-            );
-            setShowModal(false);
-          }}
+          onSave={updateTask}
         />
       )}
 
@@ -313,6 +454,7 @@ const TodoList = () => {
           onClose={() => setShowEditTaskTypeModal(false)}
         />
       )}
+
       {showTaskTypeModal && (
         <TaskTypeModal
           isOpen={showTaskTypeModal}
