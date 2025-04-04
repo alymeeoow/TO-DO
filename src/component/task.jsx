@@ -398,11 +398,12 @@ const Task = ({
           </div>
         )}
 
-        <FiEdit
-          className={`edit-btn-btn icon-style ${tutorialMode && currentTutorialStep === 4 ? "tutorial-highlight" : ""}`}
-          onClick={handleEditClick}
-          aria-label="Edit task"
-        />
+<FiEdit
+  className={`edit-btn-btn icon-style ${tutorialMode && currentTutorialStep === 4 ? "tutorial-highlight" : ""} ${task.completed ? "disabled" : ""}`}
+  onClick={task.completed ? undefined : handleEditClick}
+  aria-label="Edit task"
+/>
+
         
         <FiTrash2
           className={`delete-btn icon-style ${tutorialMode && currentTutorialStep === 5 ? "tutorial-highlight" : ""}`}

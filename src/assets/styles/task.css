@@ -471,6 +471,13 @@ box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
   transition: transform 0.3s ease;
 }
 
+.edit-btn-btn.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+
 @keyframes pulse {
   0% {
     box-shadow: 0 0 0 4px rgba(255, 215, 0, 0.8);
