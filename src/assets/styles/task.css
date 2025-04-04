@@ -601,6 +601,12 @@ box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
     font-size: 13px; 
     padding: 8px 15px; 
   }
+
+
+  .tutorial-nav-btn-prev {
+    font-size: 13px; 
+    padding: 8px 15px; 
+  }
 }
 
 
