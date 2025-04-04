@@ -24,7 +24,7 @@ const EditTaskTypeModal = ({ taskType, taskTypes, onSave, onClose }) => {
     return (
       <div className="edit-task-type-overlay">
         <div className="edit-task-type-modal">
-          <h2 className="edit-task-type-title">Edit Task Type</h2>
+          <h2 className="edit-task-type-title">Edit Task Category</h2>
           
           {error && <div className="edit-task-type-error-message">{error}</div>}
           

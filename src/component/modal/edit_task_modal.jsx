@@ -15,20 +15,9 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
     }
   }, [task]);
 
-  const isPastDateTime = () => {
-    if (!date || !time) return false;
-    const selectedDateTime = new Date(`${date}T${time}`);
-    return selectedDateTime < new Date();
-  };
-
   const handleSave = () => {
-    if (!title || !date || !time) {
-      setError("All fields are required.");
-      return;
-    }
-
-    if (isPastDateTime()) {
-      setError("Cannot set a task for a past date/time.");
+    if (!title) {
+      setError("Title is required.");
       return;
     }
 
@@ -57,12 +46,13 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
           className="edit-input"
           value={title}
           onChange={(e) => setTitle(e.target.value)}
+          required
         />
 
         <label className="edit-label">Date:</label>
         <input
           type="date"
-          className={`edit-input ${isPastDateTime() ? "error-input" : ""}`}
+          className="edit-input"
           value={date}
           onChange={(e) => setDate(e.target.value)}
         />
@@ -70,7 +60,7 @@ const TaskEditModal = ({ task, isOpen, onClose, onSave }) => {
         <label className="edit-label">Time:</label>
         <input
           type="time"
-          className={`edit-input ${isPastDateTime() ? "error-input" : ""}`}
+          className="edit-input"
           value={time}
           onChange={(e) => setTime(e.target.value)}
         />
